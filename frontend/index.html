@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI网文工厂 - 你的专属写作神器</title>
+  <title>AI网文工厂</title>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/naive-ui@2.34.4/dist/index.css">
@@ -30,14 +30,14 @@
           <n-text v-if="msg" type="success">{{ msg }}</n-text>
         </n-card>
 
-        <n-card title="粘贴世界观文本（AI生成的大纲、设定、角色等）">
-          <n-input v-model:value="text" type="textarea" :autosize="{minRows:10}" placeholder="直接粘贴从Grok/Claude/ChatGPT生成的世界观..." />
+        <n-card title="粘贴世界观文本">
+          <n-input v-model:value="text" type="textarea" :autosize="{minRows:10}" placeholder="粘贴AI生成的世界观..." />
           <n-button type="info" @click="parse" :loading="loading" style="margin-top:16px">
             {{ loading ? 'AI解析中...' : '开始结构化解析' }}
           </n-button>
         </n-card>
 
-        <n-card v-if="result" title="AI解析结果（可直接复制给DeepSeek）">
+        <n-card v-if="result" title="AI解析结果">
           <n-code :code="result" language="json" word-wrap style="max-height:500px;overflow:auto" />
           <n-button type="success" @click="copy" style="margin-top:16px">一键复制提示词</n-button>
         </n-card>
@@ -47,7 +47,7 @@
 </div>
 
 <script>
-const { createApp } = Vue
+const { createApp, ref } = Vue
 const { useMessage, NSpace, NCard, NInput, NButton, NText, NCode } = NaiveUI
 createApp({
   setup() {
@@ -82,11 +82,12 @@ createApp({
 
     const copy = () => {
       navigator.clipboard.writeText(result.value)
-      message.success('已复制！去DeepSeek粘贴开始狂写吧！')
+      message.success('已复制！去DeepSeek开始写！')
     }
 
     return { title, text, result, loading, msg, createBook, parse, copy }
-  }
+  },
+  components: { NSpace, NCard, NInput, NButton, NText, NCode }
 }).use(NaiveUI).mount('#app')
 </script>
 </body>
