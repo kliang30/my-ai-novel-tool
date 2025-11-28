@@ -24,12 +24,14 @@
     </div>
     <div class="content">
       <n-space vertical :size="32">
+        <!-- 创建小说 -->
         <n-card title="① 创建小说">
           <n-input v-model:value="title" placeholder="输入书名，如：都市最强仙帝" clearable />
           <n-button type="primary" @click="createBook" style="margin-top:16px">新建项目</n-button>
-          <n-text v-if="msg" type="success>{{ msg }}</n-text>
+          <n-text v-if="msg" type="success" style="margin-top:12px;display:block">{{ msg }}</n-text>
         </n-card>
 
+        <!-- 粘贴世界观 -->
         <n-card title="② 粘贴世界观文本（直接从Grok/Claude复制）">
           <n-input v-model:value="text" type="textarea" :autosize="{minRows:10,maxRows:20}" placeholder="粘贴完整的世界观、大纲、角色设定..." />
           <n-button type="info" @click="parse" :loading="loading" style="margin-top:16px">
@@ -37,6 +39,7 @@
           </n-button>
         </n-card>
 
+        <!-- 解析结果 -->
         <n-card v-if="result" title="③ AI解析结果（可直接给DeepSeek）">
           <n-code :code="result" language="json" word-wrap style="max-height:600px;overflow:auto" />
           <n-button type="success" @click="copy" style="margin-top:16px">一键复制提示词</n-button>
@@ -48,7 +51,8 @@
 
 <script>
 const { createApp, ref } = Vue
-const { useMessage, NSpace, NCard, NInput, NButton, NText, NCode } = NaiveUI
+const { useMessage = NaiveUI.useMessage
+const { NSpace, NCard, NInput, NButton, NText, NCode } = NaiveUI
 
 createApp({
   setup() {
@@ -74,11 +78,17 @@ createApp({
       if (!text.value) return message.warning('请粘贴内容')
       loading.value = true
       try {
-        const r = await axios.post(`${API}/api/ai/parse-worldview`, null, { params: { text: text.value }, timeout: 90000 })
-        result.value = r.data.result || r.data.error
+        const r = await axios.post(`${API}/api/ai/parse-worldview`, null, {
+          params: { text: text.value },
+          timeout: 90000
+        })
+        result.value = r.data.result || r.data.error || '无返回内容'
         if (r.data.result) message.success('解析完成！')
-      } catch (e) { message.error('解析失败：' + e.message) }
-      loading.value = false
+      } catch (e) {
+        message.error('解析失败：' + e.message)
+      } finally {
+        loading.value = false
+      }
     }
 
     const copy = () => {
