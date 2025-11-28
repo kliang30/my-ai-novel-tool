@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-# 简单 app 定义，防模块加载失败
-app = FastAPI(title="AI网文工厂", debug=False)  # debug=False 去 reloader
+# 核心 app 对象，必须全局定义
+app = FastAPI(title="AI网文工厂", debug=False)  # debug=False 禁用 reloader，避免循环
 
-# CORS 允许所有
+# CORS 允许所有来源（前端 Vercel 调用）
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,5 +22,5 @@ async def create_book(title: str = Query(..., description="小说标题")):
     return {"book_id": 1, "title": title, "status": "创建成功"}
 
 @app.get("/health")
-async def health():
-    return {"status": "healthy"}
+async def health_check():
+    return {"status": "healthy", "uptime": "ok"}
