@@ -48,7 +48,8 @@
 
 <script>
 const { createApp, ref } = Vue
-const { NSpace, NCard, NInput, NButton, NText, NCode, message } = NaiveUI
+const { NSpace, NCard, NInput, NButton, NText, NCode, createDiscreteApi } = NaiveUI
+const { message } = createDiscreteApi(['message'])
 
 createApp({
   setup() {
