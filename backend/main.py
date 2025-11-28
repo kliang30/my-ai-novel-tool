@@ -1,8 +1,11 @@
-from fastapi import FastAPI, Query
+```python
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+# 这行必须有！名字必须叫 app
+app = FastAPI(title="AI网文工厂", description="后端已活")
 
+# 允许所有前端访问
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,11 +15,9 @@ app.add_middleware(
 )
 
 @app.get("/")
-async def root():
-    return {"message": "后端已彻底活！可以开始造小说了！"}
+async def home():
+    return {"msg": "后端已经彻底活了！可以开始写小说了！"}
 
-@app.post("/api/books")
-async def create_book(title: str = Query(None)):
-    if not title:
-        title = "默认书名"
-    return {"book_id": 999, "title": title, "status": "创建成功"}
+@app.get("/test")
+async def test():
+    return {"status": "ok"}
