@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI网文工厂 - 你的专属写作神器</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/naive-ui@2.34.4/dist/index.css">
+  <script src="https://unpkg.com/naive-ui@2.34.4/dist/index.js"></script>
+  <style>
+    body { margin:0; font-family:'Microsoft YaHei'; background:linear-gradient(135deg,#667eea,#764ba2); min-height:100vh; }
+    .box { max-width:960px; margin:30px auto; background:white; border-radius:20px; overflow:hidden; box-shadow:0 20px 40px rgba(0,0,0,0.3); }
+    .header { background:linear-gradient(120deg,#a855f7,#3a1c71); color:white; padding:40px; text-align:center; }
+    .content { padding:40px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="box">
+    <div class="header">
+      <h1>AI网文工厂</h1>
+      <p>世界观 → AI结构化 → 一键复制 → DeepSeek狂写</p>
+    </div>
+    <div class="content">
+      <n-space vertical :size="30">
+        <n-card title="创建小说">
+          <n-input v-model:value="title" placeholder="输入书名" clearable />
+          <n-button type="primary" @click="createBook" style="margin-top:16px">新建项目</n-button>
+          <n-text v-if="msg" type="success">{{ msg }}</n-text>
+        </n-card>
+
+        <n-card title="粘贴世界观文本（AI生成的大纲、设定、角色等）">
+          <n-input v-model:value="text" type="textarea" :autosize="{minRows:10}" placeholder="直接粘贴从Grok/Claude/ChatGPT生成的世界观..." />
+          <n-button type="info" @click="parse" :loading="loading" style="margin-top:16px">
+            {{ loading ? 'AI解析中...' : '开始结构化解析' }}
+          </n-button>
+        </n-card>
+
+        <n-card v-if="result" title="AI解析结果（可直接复制给DeepSeek）">
+          <n-code :code="result" language="json" word-wrap style="max-height:500px;overflow:auto" />
+          <n-button type="success" @click="copy" style="margin-top:16px">一键复制提示词</n-button>
+        </n-card>
+      </n-space>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue
+const { useMessage, NSpace, NCard, NInput, NButton, NText, NCode } = NaiveUI
+createApp({
+  setup() {
+    const message = useMessage()
+    const title = ref('')
+    const text = ref('')
+    const result = ref('')
+    const loading = ref(false)
+    const msg = ref('')
+
+    const API = 'https://web-production-0787.up.railway.app'
+
+    const createBook = async () => {
+      if (!title.value) return message.warning('请输入书名')
+      try {
+        await axios.post(`${API}/api/books`, null, { params: { title: title.value } })
+        msg.value = `《${title.value}》创建成功！`
+        message.success(msg.value)
+      } catch { message.error('创建失败') }
+    }
+
+    const parse = async () => {
+      if (!text.value) return message.warning('请粘贴内容')
+      loading.value = true
+      try {
+        const r = await axios.post(`${API}/api/ai/parse-worldview`, null, { params: { text: text.value }, timeout: 60000 })
+        result.value = r.data.result || r.data.error
+        if (r.data.result) message.success('解析完成！')
+      } catch { message.error('解析失败') }
+      loading.value = false
+    }
+
+    const copy = () => {
+      navigator.clipboard.writeText(result.value)
+      message.success('已复制！去DeepSeek粘贴开始狂写吧！')
+    }
+
+    return { title, text, result, loading, msg, createBook, parse, copy }
+  }
+}).use(NaiveUI).mount('#app')
+</script>
+</body>
+</html>
