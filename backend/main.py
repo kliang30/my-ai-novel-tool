@@ -5,11 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base
 
-# 安全获取 DATABASE_URL，fallback 到 SQLite
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL or "railway" in DATABASE_URL and len(DATABASE_URL) < 50:  # 检测无效引用
-    DATABASE_URL = "sqlite:///./novel_factory.db"  # 本地 fallback
-    print("Warning: Using fallback SQLite (add valid DATABASE_URL in Railway)")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./novel_factory.db")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 Base.metadata.create_all(bind=engine)
@@ -26,7 +22,7 @@ app.add_middleware(
 
 @app.get("/")
 async def home():
-    return {"msg": "后端活了！路径修复成功。", "status": "ok", "db_url": DATABASE_URL[:50] + "..." if DATABASE_URL else "fallback"}
+    return {"msg": "后端活了！路径修复成功。", "status": "ok"}
 
 @app.post("/api/books")
 async def create_book(title: str = Query(...)):
