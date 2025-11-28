@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import books, chapters, settings, ai  # 后期添加routers文件夹
 
 app = FastAPI(title="AI网文工厂中枢", version="1.0.0")
 
@@ -13,12 +12,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 临时简化：后期添加完整router
 @app.get("/")
 async def root():
-    return {"message": "AI网文工厂后端已启动！"}
+    return {"message": "AI网文工厂后端已启动！准备割韭菜！"}
 
-# 示例API
 @app.post("/api/books")
-async def create_book(title: str):
+async def create_book(title: str):  # 注意：加了类型注解
     return {"book_id": 1, "title": title}
+
+# 临时注释掉 routers 导入，后面再加
+# from routers import books, chapters, settings, ai
+# app.include_router(books.router, prefix="/api/books")
+# ... 其他 routers
