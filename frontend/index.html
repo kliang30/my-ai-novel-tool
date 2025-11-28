@@ -24,14 +24,12 @@
     </div>
     <div class="content">
       <n-space vertical :size="32">
-        <!-- 创建小说 -->
         <n-card title="① 创建小说">
           <n-input v-model:value="title" placeholder="输入书名，如：都市最强仙帝" clearable />
           <n-button type="primary" @click="createBook" style="margin-top:16px">新建项目</n-button>
           <n-text v-if="msg" type="success" style="margin-top:12px;display:block">{{ msg }}</n-text>
         </n-card>
 
-        <!-- 粘贴世界观 -->
         <n-card title="② 粘贴世界观文本（直接从Grok/Claude复制）">
           <n-input v-model:value="text" type="textarea" :autosize="{minRows:10,maxRows:20}" placeholder="粘贴完整的世界观、大纲、角色设定..." />
           <n-button type="info" @click="parse" :loading="loading" style="margin-top:16px">
@@ -39,7 +37,6 @@
           </n-button>
         </n-card>
 
-        <!-- 解析结果 -->
         <n-card v-if="result" title="③ AI解析结果（可直接给DeepSeek）">
           <n-code :code="result" language="json" word-wrap style="max-height:600px;overflow:auto" />
           <n-button type="success" @click="copy" style="margin-top:16px">一键复制提示词</n-button>
@@ -51,12 +48,11 @@
 
 <script>
 const { createApp, ref } = Vue
-const { useMessage = NaiveUI.useMessage
-const { NSpace, NCard, NInput, NButton, NText, NCode } = NaiveUI
+const { createDiscreteApi } = NaiveUI
+const { message } = createDiscreteApi(['message'])
 
 createApp({
   setup() {
-    const message = useMessage()
     const title = ref('')
     const text = ref('')
     const result = ref('')
@@ -71,11 +67,13 @@ createApp({
         await axios.post(`${API}/api/books`, null, { params: { title: title.value } })
         msg.value = `《${title.value}》创建成功！`
         message.success(msg.value)
-      } catch { message.error('创建失败') }
+      } catch (e) {
+        message.error('创建失败：' + e.message)
+      }
     }
 
     const parse = async () => {
-      if (!text.value) return message.warning('请粘贴内容')
+      if (!text.value) return message.warning('请粘贴世界观文本')
       loading.value = true
       try {
         const r = await axios.post(`${API}/api/ai/parse-worldview`, null, {
@@ -83,9 +81,13 @@ createApp({
           timeout: 90000
         })
         result.value = r.data.result || r.data.error || '无返回内容'
-        if (r.data.result) message.success('解析完成！')
+        if (r.data.result) {
+          message.success('解析完成！')
+        } else {
+          message.error(r.data.error || '解析失败')
+        }
       } catch (e) {
-        message.error('解析失败：' + e.message)
+        message.error('请求失败：' + e.message)
       } finally {
         loading.value = false
       }
@@ -93,13 +95,12 @@ createApp({
 
     const copy = () => {
       navigator.clipboard.writeText(result.value)
-      message.success('已复制！去DeepSeek粘贴开始狂写吧！')
+      message.success('已复制到剪贴板！去DeepSeek粘贴开始狂写吧！')
     }
 
     return { title, text, result, loading, msg, createBook, parse, copy }
-  },
-  components: { NSpace, NCard, NInput, NButton, NText, NCode }
-}).use(NaiveUI).mount('#app')
+  }
+}).mount('#app')
 </script>
 </body>
 </html>
